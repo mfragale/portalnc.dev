@@ -1,79 +1,103 @@
-jQuery(function () {
-
-	// Fullscreen Menu http://www.hongkiat.com/blog/jquery-sliding-navigation/
-	$(".hamburger").on("click", function (e) {
-		e.preventDefault();
-		$(".hamburger").toggleClass("is-active");
-		$('#fullscreenmenu').toggleClass("is-active");
-	});
-
-	// Open and Close Fullscreen Menu by pressing esc
-	$('body').keydown(function (e) {
-		if (e.which == 27) {
-			$(".hamburger").toggleClass("is-active");
-			$('#fullscreenmenu').toggleClass("is-active");
-		}
-	});
-
-
-
-
-	$('.misha_loadmore').click(function () {
-
-		var button = $(this),
-			data = {
-				'action': 'loadmore',
-				'query': misha_loadmore_params.posts, // that's how we get params from wp_localize_script() function
-				'page': misha_loadmore_params.current_page
-			};
-
-		$.ajax({ // you can also use $.post here
-			url: misha_loadmore_params.ajaxurl, // AJAX handler
-			data: data,
-			type: 'POST',
-			beforeSend: function (xhr) {
-				button.text('Loading...'); // change the button text, you can also add a preloader image
-			},
-			success: function (data) {
-				if (data) {
-					//button.text('More posts').prev().before(data); // insert new posts
-					$("#all_my_posts").append(data);
-					misha_loadmore_params.current_page++;
-
-					if (misha_loadmore_params.current_page == misha_loadmore_params.max_page)
-						button.remove(); // if last page, remove the button
-
-					// you can also fire the "post-load" event here if you use a plugin that requires it
-					// $( document.body ).trigger( 'post-load' );
-				} else {
-					button.remove(); // if no data, remove the button as well
-				}
-			}
-		});
-	});
-
-
-
-
-
-	// Autoplays any video with the css class .lwp-video-autoplay
-	if ($('.lwp-video-autoplay .et_pb_video_box').length !== 0) {
-		$('.lwp-video-autoplay .et_pb_video_box').find('video').prop('muted', true);
-		$(".lwp-video-autoplay .et_pb_video_box").find('video').attr('loop', 'loop');
-		$(".lwp-video-autoplay .et_pb_video_box").find('video').attr('playsInline', '');
-
-		$(".lwp-video-autoplay .et_pb_video_box").each(function () {
-			$(this).find('video').get(0).play();
-		});
-		$('.lwp-video-autoplay .et_pb_video_box').find('video').removeAttr('controls');
+(function ($) {
+	$.fn.hasScrollBar = function () {
+		return this.get(0).scrollWidth > this.get(0).clientWidth;
 	}
+})(jQuery);
+
+
+jQuery(function ($) {
+
+
+	$(document).ready(function () {
+		const muxPlayer = document.querySelector("mux-player");
+		const currentVideoInfo = $("#current-video");
+
+		muxPlayer.onplay = function () {
+			console.log("The video has started to play");
+		};
+
+		muxPlayer.addEventListener("timeupdate", function (event) {
+			// console.log('timeStamp:', event.timeStamp);
+			// console.log('currentTime:', event.currentTime);
+			// $("#current-video .progress-bar").animate({
+			// 	width: 
+			// });
+		});
+
+
+
+
+		var vid = $("mux-player"),
+			check,
+			reached25 = false,
+			reached50 = false,
+			reached75 = false;
+
+		vid.bind("play", function (event) {
+			var duration = vid.get(0).duration;
+
+			check = setInterval(function () {
+				var current = vid.get(0).currentTime,
+					perc = (current / duration * 100).toFixed(2);
+
+
+				if (Math.floor(perc) >= 25 && !reached25) {
+					console.log("25% reached");
+					reached25 = true;
+				}
+				console.log(perc);
+
+				$("#current-video .progress-bar").animate({
+					width: perc + "%"
+				});
+
+			}, 1000);
+		});
+
+		vid.bind("ended pause", function (event) {
+			clearInterval(check);
+		});
 
 
 
 
 
 
+	});
+
+
+
+
+
+	function showHideScroll() {
+		if ($('.disciplinas-nav ul').hasScrollBar()) {
+			$(".disciplinas-nav-scroll-handles-left").show();
+			$(".disciplinas-nav-scroll-handles-right").show();
+			$('.disciplinas-nav ul').addClass("px-4");
+
+			$('.disciplinas-nav ul').animate({
+				scrollLeft: $(".disciplinas-nav ul .nav-item .active").offset().left
+			}, 200);
+		} else {
+			$(".disciplinas-nav-scroll-handles-left").hide();
+			$(".disciplinas-nav-scroll-handles-right").hide();
+			$('.disciplinas-nav ul').removeClass("px-4");
+		}
+	}
+	showHideScroll();
+
+	$(window).on('resize', function () {
+		showHideScroll();
+	});
+
+	$(".disciplinas-nav-scroll-handles-right").click(function (event) {
+		$('.disciplinas-nav ul').animate({ scrollLeft: '+=150px' }, 200);
+	});
+	$(".disciplinas-nav-scroll-handles-left").click(function (event) {
+		$('.disciplinas-nav ul').animate({ scrollLeft: '-=150px' }, 200);
+	});
 
 
 
 }); // jQuery
+
